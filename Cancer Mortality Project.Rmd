@@ -1,0 +1,136 @@
+---
+title: "Cancer Mortality in Children Project"
+author: "Luke Austin"
+date: "2023-10-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Exploration of Cancer Mortality Rates among Children using ggplot2 in R**
+
+Luke Austin
+
+10/14/2023
+
+
+```{r, include=FALSE}
+#Here is the data from the dataset
+CancerMortality<- read.csv("C:/Users/austi/OneDrive/Desktop/Portfolio/CancerMortality.csv")
+CancerMortality
+```
+```{r, include=FALSE}
+#Download packages
+library(tidyverse)
+library(rstanarm)
+library(ggplot2)
+library(dplyr)
+library(broom)
+library(tidyr)
+```
+
+**Introduction**
+
+This report is focused on using data visualization methods from the R package “ggplot2” to interpret data related to cancer mortality in children in the United States. I chose this data due to my personal interest and background in the field of biomedical science, my interest in cancer research, and the presence and impact of cancer in today’s world.  This dataset was downloaded as a text file from the CDC Wonder database and converted into a CSV file. The data contains factors such as region, year, age group, sex (male or female), and total number of deaths. The regions are divided into the standard four regions of the United States: Northeast, Midwest, West, and South. The years of the dataset are all years from 2010-2020, so the data is relatively modern, making it even more relevant. The “Age Group” category divides the children into four age groups: 1-4 years, 5-9 years, 10-14 years, and 15-19 years.
+
+The scientific motivation for analyzing this dataset is to obtain a better understanding of how cancer deaths in children have changed over time and the overall prevalence of cancer deaths based on various demographic factors. Millions of dollars in funding goes to scientists each year for cancer research, so we might expect a decline in the number of deaths over time. We hope to verify that with this data. In addition, we seek to understand if cancer deaths are more frequent based on factors such as age, region, and sex (also called gender throughout the study). We might expect that deaths do not vary across region or gender, and if they do, further research or evaluation may be required. As children age, it’s possible they may be more likely to die of cancer due to a longer lifespan of potential exposure. In this study, we hope to evaluate all of this, interpreting and deciphering these relationships using data visualization methods. This will be done in R using the package “ggplot2”.
+
+
+**Outcomes and Discussion**
+
+The first relationship examined in this study is to see if there is any variation in cancer deaths among children over time based on region. This was evaluated with a scatterplot and lines fit for each region, as well as an overall trendline of the data, as shown below in Figure 1.
+
+```{r, echo=FALSE}
+#First, we want to create our first plot
+#Let's examine the relationship between Cancer mortality in children over time, by region
+p1<- ggplot(data = CancerMortality, mapping= aes(x=Year, y=Deaths, 
+                                            color= Region))
+p1+ geom_point()+
+  geom_smooth(method = "loess", color= "black") +
+  geom_smooth(mapping= aes(group= Region), method= "lm", se=FALSE) +
+  labs(x= "Year", y="Deaths",
+       title= "Figure 1: Number of Cancer Deaths over Time by Region",
+       color="Region") + 
+  scale_x_continuous(breaks = round(seq(min(CancerMortality$Year), max(CancerMortality$Year), by=2), 1) )
+#It appears that over time the number of deaths has declined ever so slightly in each region and as a whole, with the midwest and northeast having less total deats recorded than southeast and west
+```
+
+As we can see, it appears that the number of deaths over time has decreased slightly. Originally, a faceted line plot was considered to evaluate this data, but due to the variation of data points, the plot was difficult to interpret, so a scatterplot was chosen. Surprisingly, it appears that cancer deaths are more prevalent among children in the South and West than in the Midwest and Northeast. It is unclear whether this is simply due to the number of deaths reported to the CDC in those regions or the population size, or if there is some other factor, like a higher rate of genetic predispositions to cancer or a difference in the resources available for cancer treatment. Next, we wanted to re-evaluate this data using a bar-plot, but providing further evaluation by faceting by age group, as shown in Figure 2.
+
+```{r, echo=FALSE}
+#We may want to consider a barplot for this data. It would allow us to compute the deaths in each region by age group.
+p2<- ggplot(data=CancerMortality, mapping=(aes(x=Region, fill=Region)))
+p2+ geom_bar()+ guides(fill= "none") +
+  facet_wrap(~reorder(Age.Group, Deaths), ncol = 2)+
+  labs(x="Region", y="Number of deaths",
+       title= "Figure 2: Exploration of Cancer Mortality Rates by Region",
+       subtitle = "Comparison across Age Groups")
+#Most by far in the south, seems to be a higher number by age group. Further evaluation will tell us.
+```
+
+Once again, we see a slightly higher number of cancer deaths in the South and West, although it is more difficult to distinguish. Interestingly, we notice some variation based on age group as well- it seems there are more deaths as children get older, but it is difficult to confirm with just an eye test. We look more closely at this (and evaluate the change over time) using a scatterplot in Figure 3, and then consider another factor- the gender of the child- the same way in Figure 4.
+
+```{r, echo=FALSE}
+#Let's examine the relationship between Cancer mortality and age group over time
+p3<- ggplot(data = CancerMortality, mapping= aes(x=Year, y=Deaths, 
+                                            color= Age.Group))
+p3+ geom_point()+
+  geom_smooth(method = "loess", color= "black") +
+  geom_smooth(mapping= aes(group= Age.Group), method= "lm", se=FALSE) +
+  labs(x= "Year", y="Deaths",
+       title= "Figure 3: Number of Cancer Deaths over Time by Age Group",
+       color="Age Group") +
+  scale_x_continuous(breaks = round(seq(min(CancerMortality$Year), max(CancerMortality$Year), by=2), 1) )
+```
+
+```{r, echo=FALSE}
+#More demographic data: see if cancer death rates have changed over time by gender
+p4<- ggplot(data = CancerMortality, mapping= aes(x=Year, y=Deaths, 
+                                            color= Sex))
+p4+ geom_point()+
+  geom_smooth(method = "loess", color= "black") +
+  geom_smooth(mapping= aes(group= Sex), method= "lm", se=FALSE) +
+  labs(x= "Year", y="Deaths",
+       title= "Figure 4: Number of Cancer Deaths over Time by Gender",
+       color="Age Group") +
+  scale_x_continuous(breaks = round(seq(min(CancerMortality$Year), max(CancerMortality$Year), by=2), 1) )
+#It appears that over time the number of deaths has declined ever so slightly  with cancer deaths being more frequent in males than females
+```
+
+In both plots, we once again notice that the number of cancer deaths as a whole and in each category has gone down over time. We receive support for the evidence from Figure 2 that as age increases, so do the number of deaths, and we also discover that there are more cancer deaths in male children than in female children. This is surprising, as we might have expected the number to be relatively equal. Could it be possible there are more genetic predispositions for cancers in men than women? Unfortunately, that is outside of the scope of this study and requires further scientific testing. Something we should consider, however, is if the number of deaths in children of different genders varies by age group. This is evaluated and shown in Figure 5 below.
+
+```{r, echo=FALSE}
+#Bar plot of deaths by gender
+p5<- ggplot(data=CancerMortality, mapping=(aes(x=Sex, fill=Sex)))
+p5+ geom_bar()+ guides(fill= "none") +
+  facet_wrap(~reorder(Age.Group, Deaths), ncol = 2)+
+  labs(x="Sex", y="Number of deaths",
+       title= "Figure 5: Exploration of Cancer Mortality Rates by Gender",
+       subtitle = "Comparison across Age Groups")
+#More in male than female when under the age of ten, 10-19 it's pretty even.
+```
+
+The figure above indicates that in both genders, the number of deaths increases as age increases. The difference between genders is less noticeable than in Figure 4.
+
+The data collected thus far has been helpful, but it would be nice to summarize our findings in one plot that considers and displays all these factors. Fortunately, we can cross-classify data using the “facet_grid” function, as is done in Figure 6 below to neatly display our findings.
+
+```{r, echo=FALSE}
+#We can cross-classify some data by two categorical variables. In that case you should try facet_grid() instead
+p6 <- ggplot(data = CancerMortality,
+            mapping = aes(x = Year, y = Deaths, color= Sex))
+p6 + geom_point() +
+    facet_grid(reorder(Age.Group, Deaths) ~ Region) +labs(title = "Figure 6: Cross-Examination of Data", subtitle= "Based on Region, Age Group, and Gender") +
+    scale_x_continuous(breaks = round(seq(min(CancerMortality$Year), max(CancerMortality$Year), by=5), 1) )
+```
+
+**Conclusion**
+
+In conclusion, we have succeeded in the goal of this study by understanding how cancer deaths in children have changed over time and how they vary based on demographic factors. We were able to do this using data visualization methods. 
+
+Figures 1, 3, and 4 (and Figure 6 to a lesser scale) indicated a slight decrease in the total number of cancer deaths among children from 2010-2020. This is encouraging because countless amounts of funding, time and research have been put in by scientists and institutions, and it is reassuring to know the work is proving useful for children as well. 
+
+Demographically speaking, we noticed that the highest number of deaths occurs among children in the South, followed by the West. It is unclear whether this is due to a difference in the number of deaths reported or the population size, or if it has a scientific reason such as a lack of resources for cancer treatment or if there are genetic factors related to terminal cancers that are more present in certain regions. Further studies to examine this are encouraged. We also see that as age increases, the number of deaths increases, which we may have expected due to the increase in lifetime and thus increase in exposure to things such as carcinogens. Finally, we notice that females have less cancer deaths than males. This is significant as one might expect this to be equal, so it may mean that there are more genetic or hereditary cancers present in young males, or simply a higher ratio of terminal types of cancer. This should be studied further by scientists as well.
+
+Regardless, we have confirmed that there are demographic factors related to the number of cancer deaths in children in the United States, and that the total number of these deaths has declined over time. We were able to clearly decipher this information using “ggplot2”, proving what a powerful tool it can be when used for data visualization.
